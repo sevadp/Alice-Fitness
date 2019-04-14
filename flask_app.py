@@ -1,10 +1,9 @@
 import json
-from flask import Flask, redirect, request, url_for
+from flask import Flask, redirect, request
 import logging
 from oauth import OAuthSession
 from mongoAccess import FitnessDatabase
 import random
-from datetime import timedelta
 
 app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -60,7 +59,6 @@ def main():
 @app.route('/')
 def index():
     return redirect('http://dpseva.pythonanywhere.com/auth')
-    return url_for('authorize', _external=True)  # url_for принимает название метода
 
 
 @app.route('/auth')
@@ -116,6 +114,7 @@ def handle_dialog(req, res):
             'suggests': ["Авторизовать"],
             "auth": 0,
             "key": -1,
+            "stadium": -1,
         }
         # Заполняем текст ответа
         res['response']['text'] = 'Привет! Введи "Авторизовать", чтобы продолжить.'
@@ -140,11 +139,7 @@ def handle_dialog(req, res):
         if int(req['request']['original_utterance'].lower()) in stats.keys():
             logging.info('INFO: Test Auth')
             sessionStorage[user_id]["key"] = int(req['request']['original_utterance'].lower())
-            # base[sessionStorage[user_id]["key"]] = {"steps": stats[res['response']['text']]["steps"],
-            #                                         "activity_minutes": stats[res['response']['text']]["activity_minutes"],
-            #                                         "heart": stats[res['response']['text']]["heart"],
-            #                                         "running": stats[res['response']['text']]["running"]}
-            res['response']['text'] = ("Авторизация успешна! Действуйте дальше!")
+            res['response']['text'] = "Авторизация успешна! Действуйте дальше!"
             sessionStorage[user_id]["suggests"] = ["Шаги", "Активность", "Сердце", "Бег", "Выход"]
             res['response']['buttons'] = create_suggs(user_id)
             sessionStorage[user_id]["auth"] = 1
@@ -159,29 +154,231 @@ def handle_dialog(req, res):
     #    res['response']['text'] = "Данный раздел временно не работает!"
 
     if sessionStorage[user_id]["auth"] == 1:
-        if req['request']['original_utterance'].lower() == "шаги":
-            res['response']['text'] = str(stats[sessionStorage[user_id]["key"]][0]) + str(" шагов вы совершили "
-                                                                                          "за последние две недели!")
+        if sessionStorage[user_id]["stadium"] == -1:
+            if req['request']['original_utterance'].lower() == "шаги":
+                res['response']['text'] = "Выберите за какой срок!"
+                sessionStorage[user_id]["suggests"] = ["6 часов", "12 часов", "24 часа", "2 дня",
+                                                       "3 дня", "7 дней", "14 дней", "Выход"]
+                res['response']['buttons'] = create_suggs(user_id)
+                sessionStorage[user_id]["stadium"] = 1
+                return
+            elif req['request']['original_utterance'].lower() == "активность":
+                res['response']['text'] = "Выберите за какой срок!"
+                sessionStorage[user_id]["suggests"] = ["6 часов", "12 часов", "24 часа", "2 дня",
+                                                       "3 дня", "7 дней", "14 дней", "Выход"]
+                res['response']['buttons'] = create_suggs(user_id)
+                sessionStorage[user_id]["stadium"] = 2
+                return
+            elif req['request']['original_utterance'].lower() == "сердце":
+                res['response']['text'] = "Выберите за какой срок!"
+                sessionStorage[user_id]["suggests"] = ["6 часов", "12 часов", "24 часа", "2 дня",
+                                                       "3 дня", "7 дней", "14 дней", "Выход"]
+                res['response']['buttons'] = create_suggs(user_id)
+                sessionStorage[user_id]["stadium"] = 3
+                return
+            elif req['request']['original_utterance'].lower() == "бег":
+                res['response']['text'] = "Выберите за какой срок!"
+                sessionStorage[user_id]["suggests"] = ["6 часов", "12 часов", "24 часа", "2 дня",
+                                                       "3 дня", "7 дней", "14 дней", "Выход"]
+                res['response']['buttons'] = create_suggs(user_id)
+                sessionStorage[user_id]["stadium"] = 4
+                return
+            elif req['request']['original_utterance'].lower() == "выход":
+                res['response']['end_session'] = True
+                res['response']['text'] = "Пока!"
+                return
+            else:
+                res['response']['text'] = "Попробуйте снова!"
+                res['response']['buttons'] = create_suggs(user_id)
+                return
+        if sessionStorage[user_id]["stadium"] < 10:
+            if req['request']['original_utterance'].lower() == "6 часов":
+                if sessionStorage[user_id]["stadium"] == 1:
+                    sessionStorage[user_id]["stadium"] = 10
+                elif sessionStorage[user_id]["stadium"] == 2:
+                    sessionStorage[user_id]["stadium"] = 20
+                elif sessionStorage[user_id]["stadium"] == 3:
+                    sessionStorage[user_id]["stadium"] = 30
+                elif sessionStorage[user_id]["stadium"] == 4:
+                    sessionStorage[user_id]["stadium"] = 40
+            if req['request']['original_utterance'].lower() == "12 часов":
+                if sessionStorage[user_id]["stadium"] == 1:
+                    sessionStorage[user_id]["stadium"] = 11
+                elif sessionStorage[user_id]["stadium"] == 2:
+                    sessionStorage[user_id]["stadium"] = 21
+                elif sessionStorage[user_id]["stadium"] == 3:
+                    sessionStorage[user_id]["stadium"] = 31
+                elif sessionStorage[user_id]["stadium"] == 4:
+                    sessionStorage[user_id]["stadium"] = 41
+            if req['request']['original_utterance'].lower() == "24 часа":
+                if sessionStorage[user_id]["stadium"] == 1:
+                    sessionStorage[user_id]["stadium"] = 12
+                elif sessionStorage[user_id]["stadium"] == 2:
+                    sessionStorage[user_id]["stadium"] = 22
+                elif sessionStorage[user_id]["stadium"] == 3:
+                    sessionStorage[user_id]["stadium"] = 32
+                elif sessionStorage[user_id]["stadium"] == 4:
+                    sessionStorage[user_id]["stadium"] = 42
+            if req['request']['original_utterance'].lower() == "2 дня":
+                if sessionStorage[user_id]["stadium"] == 1:
+                    sessionStorage[user_id]["stadium"] = 13
+                elif sessionStorage[user_id]["stadium"] == 2:
+                    sessionStorage[user_id]["stadium"] = 23
+                elif sessionStorage[user_id]["stadium"] == 3:
+                    sessionStorage[user_id]["stadium"] = 33
+                elif sessionStorage[user_id]["stadium"] == 4:
+                    sessionStorage[user_id]["stadium"] = 43
+            if req['request']['original_utterance'].lower() == "3 дня":
+                if sessionStorage[user_id]["stadium"] == 1:
+                    sessionStorage[user_id]["stadium"] = 14
+                elif sessionStorage[user_id]["stadium"] == 2:
+                    sessionStorage[user_id]["stadium"] = 24
+                elif sessionStorage[user_id]["stadium"] == 3:
+                    sessionStorage[user_id]["stadium"] = 34
+                elif sessionStorage[user_id]["stadium"] == 4:
+                    sessionStorage[user_id]["stadium"] = 44
+            if req['request']['original_utterance'].lower() == "7 дней":
+                if sessionStorage[user_id]["stadium"] == 1:
+                    sessionStorage[user_id]["stadium"] = 15
+                elif sessionStorage[user_id]["stadium"] == 2:
+                    sessionStorage[user_id]["stadium"] = 25
+                elif sessionStorage[user_id]["stadium"] == 3:
+                    sessionStorage[user_id]["stadium"] = 35
+                elif sessionStorage[user_id]["stadium"] == 4:
+                    sessionStorage[user_id]["stadium"] = 45
+            if req['request']['original_utterance'].lower() == "14 дней":
+                if sessionStorage[user_id]["stadium"] == 1:
+                    sessionStorage[user_id]["stadium"] = 16
+                elif sessionStorage[user_id]["stadium"] == 2:
+                    sessionStorage[user_id]["stadium"] = 26
+                elif sessionStorage[user_id]["stadium"] == 3:
+                    sessionStorage[user_id]["stadium"] = 36
+                elif sessionStorage[user_id]["stadium"] == 4:
+                    sessionStorage[user_id]["stadium"] = 46
+            else:
+                res['response']['text'] = "Попробуйте снова!"
+                res['response']['buttons'] = create_suggs(user_id)
+                return
+        if sessionStorage[user_id]["stadium"] >= 10:
+            if sessionStorage[user_id]["stadium"] == 10:
+                res['response']['text'] = str(stats[sessionStorage[user_id]["key"]][0][0]) + str(" шагов вы совершили "
+                                                                                                 "за последние "
+                                                                                                 "6 часов!")
+            elif sessionStorage[user_id]["stadium"] == 11:
+                res['response']['text'] = str(stats[sessionStorage[user_id]["key"]][0][1]) + str(" шагов вы совершили "
+                                                                                                 "за последние "
+                                                                                                 "12 часов!")
+            elif sessionStorage[user_id]["stadium"] == 12:
+                res['response']['text'] = str(stats[sessionStorage[user_id]["key"]][0][2]) + str(" шагов вы совершили "
+                                                                                                 "за последние"
+                                                                                                 " 24 часа!")
+            elif sessionStorage[user_id]["stadium"] == 13:
+                res['response']['text'] = str(stats[sessionStorage[user_id]["key"]][0][3]) + str(" шагов вы совершили "
+                                                                                                 "за последние"
+                                                                                                 " 2 дня!")
+            elif sessionStorage[user_id]["stadium"] == 14:
+                res['response']['text'] = str(stats[sessionStorage[user_id]["key"]][0][4]) + str(" шагов вы совершили "
+                                                                                                 "за последние "
+                                                                                                 "3 дня!")
+            elif sessionStorage[user_id]["stadium"] == 15:
+                res['response']['text'] = str(stats[sessionStorage[user_id]["key"]][0][5]) + str(" шагов вы совершили "
+                                                                                                 "за последние "
+                                                                                                 "7 дней!")
+            elif sessionStorage[user_id]["stadium"] == 16:
+                res['response']['text'] = str(stats[sessionStorage[user_id]["key"]][0][6]) + str(" шагов вы совершили "
+                                                                                                 "за последние "
+                                                                                                 "две недели!")
+            elif sessionStorage[user_id]["stadium"] == 20:
+                res['response']['text'] = str(stats[sessionStorage[user_id]["key"]][1][0]) + str(" минут активности "
+                                                                                                 "за последние"
+                                                                                                 " 6 часов!")
+            elif sessionStorage[user_id]["stadium"] == 21:
+                res['response']['text'] = str(stats[sessionStorage[user_id]["key"]][1][1]) + str(" минут активности "
+                                                                                                 "за последние"
+                                                                                                 " 12 часов!")
+            elif sessionStorage[user_id]["stadium"] == 22:
+                res['response']['text'] = str(stats[sessionStorage[user_id]["key"]][1][2]) + str(" минут активности "
+                                                                                                 "за последние "
+                                                                                                 "24 часа!")
+            elif sessionStorage[user_id]["stadium"] == 23:
+                res['response']['text'] = str(stats[sessionStorage[user_id]["key"]][1][3]) + str(" минут активности "
+                                                                                                 "за последние 2 дня!")
+            elif sessionStorage[user_id]["stadium"] == 24:
+                res['response']['text'] = str(stats[sessionStorage[user_id]["key"]][1][4]) + str(" минут активности "
+                                                                                                 "за последние 3 дня!")
+            elif sessionStorage[user_id]["stadium"] == 25:
+                res['response']['text'] = str(stats[sessionStorage[user_id]["key"]][1][5]) + str(" минут активности "
+                                                                                                 "за последние"
+                                                                                                 " 7 дней!")
+            elif sessionStorage[user_id]["stadium"] == 26:
+                res['response']['text'] = str(stats[sessionStorage[user_id]["key"]][1][6]) + str(" минут активности "
+                                                                                                 "за последние"
+                                                                                                 " две недели!")
+            elif sessionStorage[user_id]["stadium"] == 30:
+                res['response']['text'] = str(stats[sessionStorage[user_id]["key"]][2][0]) + str(" баллов кардио "
+                                                                                                 "за последние"
+                                                                                                 " 6 часов!")
+            elif sessionStorage[user_id]["stadium"] == 31:
+                res['response']['text'] = str(stats[sessionStorage[user_id]["key"]][2][1]) + str(" баллов кардио "
+                                                                                                 "за последние"
+                                                                                                 " 12 часов!")
+            elif sessionStorage[user_id]["stadium"] == 32:
+                res['response']['text'] = str(stats[sessionStorage[user_id]["key"]][2][2]) + str(" баллов кардио "
+                                                                                                 "за последние "
+                                                                                                 "24 часа!")
+            elif sessionStorage[user_id]["stadium"] == 33:
+                res['response']['text'] = str(stats[sessionStorage[user_id]["key"]][2][3]) + str(" минут активности "
+                                                                                                 "за последние 2 дня!")
+            elif sessionStorage[user_id]["stadium"] == 34:
+                res['response']['text'] = str(stats[sessionStorage[user_id]["key"]][2][4]) + str(" минут активности "
+                                                                                                 "за последние 3 дня!")
+            elif sessionStorage[user_id]["stadium"] == 35:
+                res['response']['text'] = str(stats[sessionStorage[user_id]["key"]][2][5]) + str(" баллов кардио "
+                                                                                                 "за последние"
+                                                                                                 " 7 дней!")
+            elif sessionStorage[user_id]["stadium"] == 36:
+                res['response']['text'] = str(stats[sessionStorage[user_id]["key"]][2][6]) + str(" баллов кардио "
+                                                                                                 "за последние"
+                                                                                                 " две недели!")
+            elif sessionStorage[user_id]["stadium"] == 40:
+                res['response']['text'] = str(round(stats[sessionStorage[user_id]["key"]][3][0] / 1000 / 60, 2)) \
+                                          + str(" минут бега "
+                                                "за последние"
+                                                " две недели!")
+            elif sessionStorage[user_id]["stadium"] == 41:
+                res['response']['text'] = str(round(stats[sessionStorage[user_id]["key"]][3][1] / 1000 / 60, 2)) \
+                                          + str(" минут бега "
+                                                "за последние"
+                                                " две недели!")
+            elif sessionStorage[user_id]["stadium"] == 42:
+                res['response']['text'] = str(round(stats[sessionStorage[user_id]["key"]][3][2] / 1000 / 60, 2)) \
+                                          + str(" минут бега "
+                                                "за последние"
+                                                " две недели!")
+            elif sessionStorage[user_id]["stadium"] == 43:
+                res['response']['text'] = str(round(stats[sessionStorage[user_id]["key"]][3][3] / 1000 / 60, 2)) \
+                                          + str(" минут бега "
+                                                "за последние"
+                                                " две недели!")
+            elif sessionStorage[user_id]["stadium"] == 44:
+                res['response']['text'] = str(round(stats[sessionStorage[user_id]["key"]][3][4] / 1000 / 60, 2)) \
+                                          + str(" минут бега "
+                                                "за последние"
+                                                " две недели!")
+            elif sessionStorage[user_id]["stadium"] == 45:
+                res['response']['text'] = str(round(stats[sessionStorage[user_id]["key"]][3][5] / 1000 / 60, 2)) \
+                                          + str(" минут бега "
+                                                "за последние"
+                                                " две недели!")
+            elif sessionStorage[user_id]["stadium"] == 46:
+                res['response']['text'] = str(round(stats[sessionStorage[user_id]["key"]][3][6] / 1000 / 60, 2)) \
+                                          + str(" минут бега "
+                                                "за последние"
+                                                " две недели!")
+
+            sessionStorage[user_id]["stadium"] = -1
+            sessionStorage[user_id]["suggests"] = ["Шаги", "Активность", "Сердце", "Бег", "Выход"]
             res['response']['buttons'] = create_suggs(user_id)
-            return
-        elif req['request']['original_utterance'].lower() == "активность":
-            res['response']['text'] = str(stats[sessionStorage[user_id]["key"]][1]) + str(" минут активности "
-                                                                                          "за последние две недели!")
-            res['response']['buttons'] = create_suggs(user_id)
-            return
-        elif req['request']['original_utterance'].lower() == "сердце":
-            res['response']['text'] = str(stats[sessionStorage[user_id]["key"]][2]) + str(" баллов кардио вы получили "
-                                                                                          "за последние две недели!")
-            res['response']['buttons'] = create_suggs(user_id)
-            return
-        elif req['request']['original_utterance'].lower() == "бег":
-            res['response']['text'] = str(round(stats[sessionStorage[user_id]["key"]][3] / 1000 / 60, 2)) + str(
-                " минут бега за последние две недели!")
-            res['response']['buttons'] = create_suggs(user_id)
-            return
-        elif req['request']['original_utterance'].lower() == "выход":
-            res['response']['end_session'] = True
-            res['response']['text'] = "Пока!"
             return
         else:
             res['response']['text'] = "Попробуйте снова!"
@@ -216,7 +413,6 @@ def handle_dialog(req, res):
 # Функция возвращает две подсказки для ответа.
 
 def create_suggs(user_id):
-    global res
     session = sessionStorage[user_id]["suggests"]
 
     suggs = []
