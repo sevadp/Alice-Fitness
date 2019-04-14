@@ -76,7 +76,7 @@ def auth_success():
     db.update()
     key = random.randint(1000, 9999)
     formatted_string = str(key)
-    stats[key] = [db.steps(), db.activity_minutes(), db.heart_minutes(), timedelta(milliseconds=db.running_time_ms())]
+    stats[key] = [db.steps(), db.activity_minutes(), db.heart_minutes(), db.running_time_ms()]
     logging.info(str(stats))
     return formatted_string
 
@@ -110,7 +110,7 @@ def handle_dialog(req, res):
         # Запишем подсказки, которые мы ему покажем в первый раз
 
         sessionStorage[ user_id ] = {
-            'suggests': ["0"],
+            'suggests': ["Авторизовать"],
             "auth": 0,
             "key": -1,
         }
@@ -120,11 +120,15 @@ def handle_dialog(req, res):
         res[ 'response' ][ 'buttons' ] = create_suggs(user_id)
         return
 
+    if req['request']['original_utterance'].lower() == "выход":
+        res['response']['end_session'] = True
+        return
+
     if req['request']['original_utterance'].lower() == "авторизовать" and sessionStorage[user_id]["auth"] == 0:
         # Авторизация гугла
-        res['response']['text'] = "Привяжите свой аккаунт к GOOGLE FIT > " + "http://sevadp.pythonanywhere.com !" \
+        res['response']['text'] = "Привяжите свой аккаунт к GOOGLE FIT > " + "http://dpseva.pythonanywhere.com!" \
                                                                              " А далее запиши свой КОД ВЕРИФИКАЦИИ!"
-        sessionStorage[user_id]["suggests"] = ["Авторизоваться", "Выход"]
+        sessionStorage[user_id]["suggests"] = ["Выход"]
         sessionStorage[user_id]["auth"] = -1
         res['response']['buttons'] = create_suggs(user_id)
         return
@@ -142,24 +146,36 @@ def handle_dialog(req, res):
             sessionStorage[user_id]["auth"] = 1
             return
         else:
-            res['response']['text'] = "Авторизация не успешна! Вышлите КОД с http://sevadp.pythonanywhere.com!"
-            sessionStorage[user_id]["suggests"] = ["Авторизоваться", "Выход"]
+            res['response']['text'] = "Авторизация не успешна! Вышлите КОД с http://dpseva.pythonanywhere.com!"
+            sessionStorage[user_id]["suggests"] = ["Выход"]
             sessionStorage[user_id]["auth"] = -1
             res['response']['buttons'] = create_suggs(user_id)
             return
     # elif req['request']['original_utterance'].lower() != "0" and sessionStorage[user_id]["auth"] == 0:
     #    res['response']['text'] = "Данный раздел временно не работает!"
+    else:
+        res['response']['text'] = 'Введи "Авторизовать", чтобы продолжить. Выход - Для отключения от навыка.'
 
     if sessionStorage[user_id]["auth"] == 1:
         if req[ 'request' ][ 'original_utterance' ].lower() == "шаги":
             res['response']['text'] = str(stats[sessionStorage[user_id]["key"]][0])
             res['response']['buttons'] = create_suggs(user_id)
+            return
         elif req[ 'request' ][ 'original_utterance' ].lower() == "активность":
-            print(1)
+            res['response']['text'] = str(stats[sessionStorage[user_id]["key"]][1])
+            res['response']['buttons'] = create_suggs(user_id)
+            return
         elif req['request']['original_utterance'].lower() == "сердце":
-            print(2)
+            res['response']['text'] = str(stats[sessionStorage[user_id]["key"]][2])
+            res['response']['buttons'] = create_suggs(user_id)
+            return
         elif req['request']['original_utterance'].lower() == "бег":
-            print(3)
+            res['response']['text'] = str(stats[sessionStorage[user_id]["key"]][3])
+            res['response']['buttons'] = create_suggs(user_id)
+            return
+        elif req['request']['original_utterance'].lower() == "выход":
+            res['response']['end_session'] = True
+            return
         else:
             res['response']['text'] = "Попробуйте снова!"
             res['response']['buttons'] = create_suggs(user_id)
@@ -193,6 +209,7 @@ def handle_dialog(req, res):
 # Функция возвращает две подсказки для ответа.
 
 def create_suggs(user_id):
+    global res
     session = sessionStorage[user_id]["suggests"]
 
     suggs = []
@@ -201,8 +218,8 @@ def create_suggs(user_id):
         suggs.append({"title": i, "hide": True})
 
         if suggs[-1]["title"] == "Авторизовать":
-            suggs[-1]["url"] = "http://sevadp.pythonanywhere.com"
-        elif suggs[-1]["title"] == "Выйти":
+            suggs[-1]["url"] = "http://dpseva.pythonanywhere.com"
+        elif suggs[-1]["title"] == "Выход":
             sessionStorage[user_id]["auth"] = 0
 
     return suggs

@@ -1,6 +1,7 @@
 import json
 from uuid import uuid4
 from rauth import OAuth2Service
+import logging
 from flask import current_app, url_for, request, redirect, session
 
 
@@ -46,7 +47,6 @@ class OAuthSession(object):
 
     @staticmethod
     def get_callback_url():
-        # return url_for('auth_success',
-        #                _external=True)# заменить этим кодом при переносе на актуальный домен
-        return "http://lvh.me:5000/auth_success"
-
+        logging.info('Request: 111')
+        return url_for('auth_success',
+                       _external=True)
