@@ -8,19 +8,19 @@ from datetime import timedelta
 
 app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
-ssss = {"web":{
-  "client_id":"704405267037-7dplj60oku5bi24a1ul5tam0ggmms3uv.apps.googleusercontent.com",
-  "authorize_url":"https://accounts.google.com/o/oauth2/auth",
-  "access_token_url":"https://oauth2.googleapis.com/token",
-  "client_secret": "acuoPUfbZwotI_CycNGAyyX0"
+ssss = {"web": {
+    "client_id": "704405267037-7dplj60oku5bi24a1ul5tam0ggmms3uv.apps.googleusercontent.com",
+    "authorize_url": "https://accounts.google.com/o/oauth2/auth",
+    "access_token_url": "https://oauth2.googleapis.com/token",
+    "client_secret": "acuoPUfbZwotI_CycNGAyyX0"
 },
-  "unused": {
-    "auth_uri":"https://accounts.google.com/o/oauth2/auth",
-  "token_uri":"https://oauth2.googleapis.com/token",
-  "auth_provider_x509_cert_url":"https://www.googleapis.com/oauth2/v1/certs",
-  "redirect_uris":["http://localhost:5000"],
-  "javascript_origins":["http://localhost:5000"]
-  }
+    "unused": {
+        "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+        "token_uri": "https://oauth2.googleapis.com/token",
+        "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+        "redirect_uris": ["http://localhost:5000"],
+        "javascript_origins": ["http://localhost:5000"]
+    }
 }
 app.config['OAUTH_CREDENTIALS'] = ssss['web']
 app.config['SECRET_KEY'] = 'top secret!'
@@ -31,7 +31,7 @@ base = {}
 stats = {}
 
 
-@app.route('/post', methods=[ 'POST' ])
+@app.route('/post', methods=['POST'])
 def main():
     logging.info('Request: %r', request.json)
 
@@ -39,8 +39,8 @@ def main():
     # мы собираем словарь, который потом при помощи библиотеки json
     # преобразуем в JSON и отдадим Алисе
     response = {
-        'session': request.json[ 'session' ],
-        'version': request.json[ 'version' ],
+        'session': request.json['session'],
+        'version': request.json['version'],
         'response': {
             'end_session': False
         }
@@ -56,10 +56,11 @@ def main():
     # Преобразовываем в JSON и возвращаем
     return json.dumps(response)
 
+
 @app.route('/')
 def index():
     return redirect('http://dpseva.pythonanywhere.com/auth')
-    return url_for('authorize', _external=True) # url_for принимает название метода
+    return url_for('authorize', _external=True)  # url_for принимает название метода
 
 
 @app.route('/auth')
@@ -74,8 +75,10 @@ def auth_success():
     session.callback()
     db = FitnessDatabase(session)
     db.update()
-    key = random.randint(1000, 9999)
-    formatted_string = str(key)
+    key = random.randint(100000, 999999)
+    while key in stats.keys():
+        key = random.randint(100000, 999999)
+    formatted_string = "Укажи код верификации в приложении Алиса: " + str(key)
     stats[key] = [db.steps(), db.activity_minutes(), db.heart_minutes(), db.running_time_ms()]
     logging.info(str(stats))
     return formatted_string
@@ -102,25 +105,26 @@ def create_user(user_id):
 
 
 def handle_dialog(req, res):
-    user_id = req[ 'session' ][ 'user_id' ]
+    user_id = req['session']['user_id']
 
-    if req[ 'session' ][ 'new' ]:
+    if req['session']['new']:
         # Это новый пользователь.
         # Инициализируем сессию и поприветствуем его.
         # Запишем подсказки, которые мы ему покажем в первый раз
 
-        sessionStorage[ user_id ] = {
+        sessionStorage[user_id] = {
             'suggests': ["Авторизовать"],
             "auth": 0,
             "key": -1,
         }
         # Заполняем текст ответа
-        res[ 'response' ][ 'text' ] = 'Привет! Введи "Авторизовать", чтобы продолжить.'
+        res['response']['text'] = 'Привет! Введи "Авторизовать", чтобы продолжить.'
         # Получим подсказки
-        res[ 'response' ][ 'buttons' ] = create_suggs(user_id)
+        res['response']['buttons'] = create_suggs(user_id)
         return
 
     if req['request']['original_utterance'].lower() == "выход":
+        res['response']['text'] = "Пока!"
         res['response']['end_session'] = True
         return
 
@@ -153,28 +157,31 @@ def handle_dialog(req, res):
             return
     # elif req['request']['original_utterance'].lower() != "0" and sessionStorage[user_id]["auth"] == 0:
     #    res['response']['text'] = "Данный раздел временно не работает!"
-    else:
-        res['response']['text'] = 'Введи "Авторизовать", чтобы продолжить. Выход - Для отключения от навыка.'
 
     if sessionStorage[user_id]["auth"] == 1:
-        if req[ 'request' ][ 'original_utterance' ].lower() == "шаги":
-            res['response']['text'] = str(stats[sessionStorage[user_id]["key"]][0])
+        if req['request']['original_utterance'].lower() == "шаги":
+            res['response']['text'] = str(stats[sessionStorage[user_id]["key"]][0]) + str(" шагов вы совершили "
+                                                                                          "за последние две недели!")
             res['response']['buttons'] = create_suggs(user_id)
             return
-        elif req[ 'request' ][ 'original_utterance' ].lower() == "активность":
-            res['response']['text'] = str(stats[sessionStorage[user_id]["key"]][1])
+        elif req['request']['original_utterance'].lower() == "активность":
+            res['response']['text'] = str(stats[sessionStorage[user_id]["key"]][1]) + str(" минут активности "
+                                                                                          "за последние две недели!")
             res['response']['buttons'] = create_suggs(user_id)
             return
         elif req['request']['original_utterance'].lower() == "сердце":
-            res['response']['text'] = str(stats[sessionStorage[user_id]["key"]][2])
+            res['response']['text'] = str(stats[sessionStorage[user_id]["key"]][2]) + str(" баллов кардио вы получили "
+                                                                                          "за последние две недели!")
             res['response']['buttons'] = create_suggs(user_id)
             return
         elif req['request']['original_utterance'].lower() == "бег":
-            res['response']['text'] = str(stats[sessionStorage[user_id]["key"]][3])
+            res['response']['text'] = str(round(stats[sessionStorage[user_id]["key"]][3] / 1000 / 60, 2)) + str(
+                " минут бега за последние две недели!")
             res['response']['buttons'] = create_suggs(user_id)
             return
         elif req['request']['original_utterance'].lower() == "выход":
             res['response']['end_session'] = True
+            res['response']['text'] = "Пока!"
             return
         else:
             res['response']['text'] = "Попробуйте снова!"
@@ -219,8 +226,6 @@ def create_suggs(user_id):
 
         if suggs[-1]["title"] == "Авторизовать":
             suggs[-1]["url"] = "http://dpseva.pythonanywhere.com"
-        elif suggs[-1]["title"] == "Выход":
-            sessionStorage[user_id]["auth"] = 0
 
     return suggs
 
