@@ -1,5 +1,5 @@
 import json
-from flask import Flask, redirect, request
+from flask import Flask, redirect, request, url_for
 import logging
 from oauth import OAuthSession
 from mongoAccess import FitnessDatabase
@@ -58,7 +58,8 @@ def main():
 
 @app.route('/')
 def index():
-    return redirect('http://localhost:5000/auth')# если нет - перенаправление на авторизацию
+    return redirect('http://dpseva.pythonanywhere.com/auth')
+    return url_for('authorize', _external=True) # url_for принимает название метода
 
 
 @app.route('/auth')
@@ -76,6 +77,7 @@ def auth_success():
     key = random.randint(1000, 9999)
     formatted_string = str(key)
     stats[key] = [db.steps(), db.activity_minutes(), db.heart_minutes(), timedelta(milliseconds=db.running_time_ms())]
+    logging.info(str(stats))
     return formatted_string
 
 
@@ -125,28 +127,33 @@ def handle_dialog(req, res):
         sessionStorage[user_id]["suggests"] = ["Авторизоваться", "Выход"]
         sessionStorage[user_id]["auth"] = -1
         res['response']['buttons'] = create_suggs(user_id)
+        return
     elif sessionStorage[user_id]["auth"] == -1:
         if int(req['request']['original_utterance'].lower()) in stats.keys():
-            create_user(user_id)
+            logging.info('INFO: Test Auth')
+            sessionStorage[user_id]["key"] = int(req['request']['original_utterance'].lower())
             # base[sessionStorage[user_id]["key"]] = {"steps": stats[res['response']['text']]["steps"],
             #                                         "activity_minutes": stats[res['response']['text']]["activity_minutes"],
             #                                         "heart": stats[res['response']['text']]["heart"],
             #                                         "running": stats[res['response']['text']]["running"]}
-            res['response']['text'] = "Авторизация успешна! Действуйте дальше!" + str(stats[req['request']['original_utterance'].lower()])
+            res['response']['text'] = ("Авторизация успешна! Действуйте дальше!")
             sessionStorage[user_id]["suggests"] = ["Шаги", "Активность", "Сердце", "Бег", "Выход"]
             res['response']['buttons'] = create_suggs(user_id)
             sessionStorage[user_id]["auth"] = 1
+            return
         else:
             res['response']['text'] = "Авторизация не успешна! Вышлите КОД с http://sevadp.pythonanywhere.com!"
             sessionStorage[user_id]["suggests"] = ["Авторизоваться", "Выход"]
             sessionStorage[user_id]["auth"] = -1
             res['response']['buttons'] = create_suggs(user_id)
+            return
     # elif req['request']['original_utterance'].lower() != "0" and sessionStorage[user_id]["auth"] == 0:
     #    res['response']['text'] = "Данный раздел временно не работает!"
 
     if sessionStorage[user_id]["auth"] == 1:
         if req[ 'request' ][ 'original_utterance' ].lower() == "шаги":
-            print(0)
+            res['response']['text'] = str(stats[sessionStorage[user_id]["key"]][0])
+            res['response']['buttons'] = create_suggs(user_id)
         elif req[ 'request' ][ 'original_utterance' ].lower() == "активность":
             print(1)
         elif req['request']['original_utterance'].lower() == "сердце":
