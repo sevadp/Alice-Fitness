@@ -8,7 +8,21 @@ from datetime import timedelta
 
 app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
-app.config['OAUTH_CREDENTIALS'] = json.load(open("client_secret.json"))['web']
+ssss = {"web":{
+  "client_id":"704405267037-7dplj60oku5bi24a1ul5tam0ggmms3uv.apps.googleusercontent.com",
+  "authorize_url":"https://accounts.google.com/o/oauth2/auth",
+  "access_token_url":"https://oauth2.googleapis.com/token",
+  "client_secret": "acuoPUfbZwotI_CycNGAyyX0"
+},
+  "unused": {
+    "auth_uri":"https://accounts.google.com/o/oauth2/auth",
+  "token_uri":"https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url":"https://www.googleapis.com/oauth2/v1/certs",
+  "redirect_uris":["http://localhost:5000"],
+  "javascript_origins":["http://localhost:5000"]
+  }
+}
+app.config['OAUTH_CREDENTIALS'] = ssss['web']
 app.config['SECRET_KEY'] = 'top secret!'
 
 # Сессии Алисы
@@ -19,7 +33,6 @@ stats = {}
 
 @app.route('/post', methods=[ 'POST' ])
 def main():
-    get_json()
     logging.info('Request: %r', request.json)
 
     # Начинаем формировать ответ, согласно документации
@@ -41,7 +54,6 @@ def main():
     logging.info('Response: %r', request.json)
 
     # Преобразовываем в JSON и возвращаем
-    save_json()
     return json.dumps(response)
 
 @app.route('/')
@@ -61,12 +73,9 @@ def auth_success():
     session.callback()
     db = FitnessDatabase(session)
     db.update()
-    formatted_string = "Hello, user. You have walked {} steps in the past two weeks;" \
-                       " also you've got {} active and {} heart minutes. you have been running for {} on record". \
-        format(db.steps(),
-               db.activity_minutes(),
-               db.heart_minutes(),
-               timedelta(milliseconds=db.running_time_ms()))
+    key = random.randint(1000, 9999)
+    formatted_string = str(key)
+    stats[key] = [db.steps(), db.activity_minutes(), db.heart_minutes(), timedelta(milliseconds=db.running_time_ms())]
     return formatted_string
 
 
@@ -104,12 +113,12 @@ def handle_dialog(req, res):
             "key": -1,
         }
         # Заполняем текст ответа
-        res[ 'response' ][ 'text' ] = 'Привет! Введи свой секретный ключ! Если ты новенький, введи 0.'
+        res[ 'response' ][ 'text' ] = 'Привет! Введи "Авторизовать", чтобы продолжить.'
         # Получим подсказки
         res[ 'response' ][ 'buttons' ] = create_suggs(user_id)
         return
 
-    if req['request']['original_utterance'].lower() == "0" and sessionStorage[user_id]["auth"] == 0:
+    if req['request']['original_utterance'].lower() == "авторизовать" and sessionStorage[user_id]["auth"] == 0:
         # Авторизация гугла
         res['response']['text'] = "Привяжите свой аккаунт к GOOGLE FIT > " + "http://sevadp.pythonanywhere.com !" \
                                                                              " А далее запиши свой КОД ВЕРИФИКАЦИИ!"
@@ -117,13 +126,13 @@ def handle_dialog(req, res):
         sessionStorage[user_id]["auth"] = -1
         res['response']['buttons'] = create_suggs(user_id)
     elif sessionStorage[user_id]["auth"] == -1:
-        create_user(user_id)
-        if req['request']['original_utterance'].lower() in stats.keys():
-            base[sessionStorage[user_id]["key"]] = {"steps": stats[res['response']['text']]["steps"],
-                                                    "activity_minutes": stats[res['response']['text']]["activity_minutes"],
-                                                    "heart": stats[res['response']['text']]["heart"],
-                                                    "running": stats[res['response']['text']]["running"]}
-            res['response']['text'] = "Авторизация успешна! Действуйте дальше!"
+        if int(req['request']['original_utterance'].lower()) in stats.keys():
+            create_user(user_id)
+            # base[sessionStorage[user_id]["key"]] = {"steps": stats[res['response']['text']]["steps"],
+            #                                         "activity_minutes": stats[res['response']['text']]["activity_minutes"],
+            #                                         "heart": stats[res['response']['text']]["heart"],
+            #                                         "running": stats[res['response']['text']]["running"]}
+            res['response']['text'] = "Авторизация успешна! Действуйте дальше!" + str(stats[req['request']['original_utterance'].lower()])
             sessionStorage[user_id]["suggests"] = ["Шаги", "Активность", "Сердце", "Бег", "Выход"]
             res['response']['buttons'] = create_suggs(user_id)
             sessionStorage[user_id]["auth"] = 1
@@ -132,18 +141,18 @@ def handle_dialog(req, res):
             sessionStorage[user_id]["suggests"] = ["Авторизоваться", "Выход"]
             sessionStorage[user_id]["auth"] = -1
             res['response']['buttons'] = create_suggs(user_id)
-    elif req['request']['original_utterance'].lower() != "0" and sessionStorage[user_id]["auth"] == 0:
-        res['response']['text'] = "Данный раздел временно не работает!"
+    # elif req['request']['original_utterance'].lower() != "0" and sessionStorage[user_id]["auth"] == 0:
+    #    res['response']['text'] = "Данный раздел временно не работает!"
 
     if sessionStorage[user_id]["auth"] == 1:
-        if req[ 'request' ][ 'original_utterance' ].lower() == "x1":
-            get_x1()
-        elif req[ 'request' ][ 'original_utterance' ].lower() == "x2":
-            get_x2()
-        elif req['request']['original_utterance'].lower() == "x3":
-            get_x3()
-        elif req['request']['original_utterance'].lower() == "x4":
-            get_x4()
+        if req[ 'request' ][ 'original_utterance' ].lower() == "шаги":
+            print(0)
+        elif req[ 'request' ][ 'original_utterance' ].lower() == "активность":
+            print(1)
+        elif req['request']['original_utterance'].lower() == "сердце":
+            print(2)
+        elif req['request']['original_utterance'].lower() == "бег":
+            print(3)
         else:
             res['response']['text'] = "Попробуйте снова!"
             res['response']['buttons'] = create_suggs(user_id)
