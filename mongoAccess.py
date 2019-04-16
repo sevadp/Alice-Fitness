@@ -133,7 +133,7 @@ activities = {
 runningActivities = [8, 57, 58, 88]
 
 
-class FitnessDatabase:#объект для взаимодействия с mongoDB
+class FitnessDatabase:  # объект для взаимодействия с mongoDB
 
     propertyNames = {
         "active_minutes": "com.google.active_minutes",
@@ -141,27 +141,52 @@ class FitnessDatabase:#объект для взаимодействия с mongo
         'steps': 'com.google.step_count.delta',
     }
 
-
-    def __init__(self,oauth_session):# Метод взаимодействия с синглтоном
+    def __init__(self,oauth_session):  # Метод взаимодействия с синглтоном
         self.oauth_session = oauth_session
         self.current_user = ""
 
+#  начало правок
+
+    timeQueries = (  # время запросов в милисекундах
+        6 * 60 * 60 * 1000,  # 6 часов
+        12 * 60 * 60 * 1000,  # 12 часов
+        24 * 60 * 60 * 1000,  # сутки
+        72 * 60 * 60 * 1000,  # два дня
+        7 * 24 * 60 * 60 * 1000,  # неделя
+        14 * 24 * 60 * 60 * 1000,  # две недели
+    )
+
     def update(self):
         self.current_user = self.oauth_session.get(' https://www.googleapis.com/oauth2/v1/userinfo?alt=json&fields=id')['id']  # получение id пользователя
-        query = {  # шаблон данных запроса
-            "aggregateBy": [{  #получить все данные по типу: здесь - минуты активности, в цикле подставляются значения из словаря
-                'dataTypeName': 'com.google.active_minutes'
-            }],
-            "bucketByTime": {"durationMillis": 86400000},  # один день в секундах
-            "startTimeMillis": int((datetime.datetime.now().timestamp() - fortnightInS) * 1000),  # время две недели назад в мс
-            "endTimeMillis": int(datetime.datetime.now().timestamp() * 1000)  # текущее время в мс
-        }
+
         record = {  # начало формирования записи
-            '_id': self.current_user
+            '_id': self.current_user,
+            'data': []
         }
-        for metric, aggregator in FitnessDatabase.propertyNames.items():#подсчёт сумм по каждому типу данных
+        for timespan in FitnessDatabase.timeQueries:
+            record['data'].append(self.data_for_duration(timespan))
+        file = open('data/{}.json'.format(self.current_user), 'w')
+        file.write(json.dumps(record))
+        file.close()
+
+    def data_for_duration(self, duration_in_ms):
+        record = {}
+        end_time = int(datetime.datetime.now().timestamp() * 1000)
+        start_time = end_time - duration_in_ms
+        query = {  # шаблон данных запроса
+            "aggregateBy": [
+                {  # получить все данные по типу: здесь - минуты активности, в цикле подставляются значения из словаря
+                    'dataTypeName': 'com.google.active_minutes'
+                }],
+            "bucketByTime": {"durationMillis": 86400000},  # один день в секундах
+            "startTimeMillis": start_time,  # время начала записи
+            "endTimeMillis": end_time  # текущее время в мс
+        }
+        for metric, aggregator in FitnessDatabase.propertyNames.items():  # подсчёт сумм по каждому типу данных
             query['aggregateBy'][0]['dataTypeName'] = aggregator
-            response = self.oauth_session.post('https://www.googleapis.com/fitness/v1/users/me/dataset:aggregate?fields=bucket(dataset(point(value(fpVal%2CintVal))))', query)  # запрос нужных данных
+            response = self.oauth_session.post(
+                'https://www.googleapis.com/fitness/v1/users/me/dataset:aggregate?fields=bucket(dataset(point(value(fpVal%2CintVal))))',
+                query)  # запрос нужных данных
             counter = 0
             try:
                 for bucket in response['bucket']:
@@ -173,35 +198,33 @@ class FitnessDatabase:#объект для взаимодействия с mongo
                             else:
                                 counter += value['intVal']
             except KeyError as err:
-                print("QUERY HAS FAIlED:\n", "Exception: {}\n".format(err),response)
+                print("QUERY HAS FAIlED:\n", "Exception: {}\n".format(err), response)
                 return
             record[metric] = counter
-
         response = self.oauth_session.get('https://www.googleapis.com/fitness/v1/users/me/sessions?includeDeleted'
                                           '=false&fields=session('
                                           'activeTimeMillis%2CactivityType%2CendTimeMillis%2CstartTimeMillis)')
         running_time_ms = 0
         for session in response['session']:
             if session['activityType'] in runningActivities:
-                if 'activeTimeMillis' in session:
-                    running_time_ms += session['activeTimeMillis']
-                elif 'endTimeMillis' and 'startTimeMillis' in session:
-                    running_time_ms += int(session['endTimeMillis']) - int(session['startTimeMillis'])
-
+                if 'endTimeMillis' and 'startTimeMillis' in session:
+                    if int(session['endTimeMillis']) <= end_time:
+                        running_time_ms += int(session['endTimeMillis']) - \
+                                           max(int(session['startTimeMillis']), start_time)
         record['running_time_ms'] = running_time_ms
+        return record
 
-        file = open('data/{}.json'.format(self.current_user), 'w')
-        file.write(json.dumps(record))
-        file.close()
+    def steps(self, timespan=0):  # запросы к БД
+        return json.load(open('data/{}.json'.format(self.current_user)))[timespan]['steps']
 
-    def steps(self):  # запросы к БД
-        return json.load(open('data/{}.json'.format(self.current_user)))['steps']
+    def activity_minutes(self, timespan=0):
+        return json.load(open('data/{}.json'.format(self.current_user)))[timespan]['active_minutes']
 
-    def activity_minutes(self):
-        return json.load(open('data/{}.json'.format(self.current_user)))['active_minutes']
+    def heart_minutes(self, timespan=0):
+        return json.load(open('data/{}.json'.format(self.current_user)))[timespan]['heart_minutes']
 
-    def heart_minutes(self):
-        return json.load(open('data/{}.json'.format(self.current_user)))['heart_minutes']
+    def running_time_ms(self, timespan=0):
+        return json.load(open('data/{}.json'.format(self.current_user)))[timespan]['running_time_ms']
 
-    def running_time_ms(self):
-        return json.load(open('data/{}.json'.format(self.current_user)))['running_time_ms']
+
+# конец правок
