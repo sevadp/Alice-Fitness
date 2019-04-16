@@ -78,16 +78,15 @@ def auth_success():
     while key in stats.keys():
         key = random.randint(100000, 999999)
     formatted_string = "Укажи код верификации в приложении Алиса: " + str(key)
-    stats[key] = [[db.steps(0), db.steps(1), db.steps(2), db.steps(3), db.steps(4), db.steps(5), db.steps(6)],
+    stats[key] = [[db.steps(0), db.steps(1), db.steps(2), db.steps(3), db.steps(4), db.steps(5)],
                   [db.activity_minutes(0), db.activity_minutes(1),
                    db.activity_minutes(2), db.activity_minutes(3),
-                   db.activity_minutes(4), db.activity_minutes(5),
-                   db.activity_minutes(6)],
+                   db.activity_minutes(4), db.activity_minutes(5)],
                   [db.heart_minutes(0), db.heart_minutes(1), db.heart_minutes(2),
-                   db.heart_minutes(3), db.heart_minutes(4), db.heart_minutes(5), db.heart_minutes(6)],
+                   db.heart_minutes(3), db.heart_minutes(4), db.heart_minutes(5)],
                   [db.running_time_ms(0), db.running_time_ms(1),
                    db.running_time_ms(2), db.running_time_ms(3),
-                   db.running_time_ms(4), db.running_time_ms(5), db.running_time_ms(6)]]
+                   db.running_time_ms(4), db.running_time_ms(5)]]
     logging.info(str(stats))
     return formatted_string
 
@@ -168,8 +167,17 @@ def handle_dialog(req, res):
 
     if sessionStorage[user_id]["auth"] == 1:
         if req['request']['original_utterance'].lower() == "шаги":
-            res['response']['text'] = str(stats[sessionStorage[user_id]["key"]][0]) + str(" шагов вы совершили "
-                                                                                          "за последние две недели!")
+            # res['response']['text'] = str(stats[sessionStorage[user_id]["key"]][0]) + str(" шагов вы совершили "
+            #                                                                               "за последние две недели!")
+            res['response']['text'] = "Ваша статистика за ближайшее время время: << 6 часов: " + \
+                                      str(stats[sessionStorage[user_id]["key"]][0][0]) + \
+                                      " >>, << 12 часов: " + str(stats[sessionStorage[user_id]["key"]][0][1]) + \
+                                      " >>, << 24 часа: " + str(stats[sessionStorage[user_id]["key"]][0][2]) + \
+                                      " >>, << 2 дня: " + str(stats[sessionStorage[user_id]["key"]][0][3]) + \
+                                      " >>, << 3 дня: " + str(stats[sessionStorage[user_id]["key"]][0][4]) + \
+                                      " >>, << 7 дней: " + str(stats[sessionStorage[user_id]["key"]][0][5]) + \
+                                      " >>, << 14 дней: " + str(stats[sessionStorage[user_id]["key"]][0][6])
+
             res['response']['buttons'] = create_suggs(user_id)
             return
         elif req['request']['original_utterance'].lower() == "активность":
