@@ -78,9 +78,18 @@ def auth_success():
     while key in stats.keys():
         key = random.randint(100000, 999999)
     formatted_string = "Укажи код верификации в приложении Алиса: " + str(key)
-    stats[key] = [db.steps(0), db.activity_minutes(0), db.heart_minutes(0), db.running_time_ms(0)]
+    stats[key] = {"steps": [db.steps(0), db.steps(1), db.steps(2), db.steps(3), db.steps(4), db.steps(5), db.steps(6)],
+                  "activity": [db.activity_minutes(0), db.activity_minutes(1),
+                               db.activity_minutes(2), db.activity_minutes(3),
+                               db.activity_minutes(4), db.activity_minutes(5), db.activity_minutes(6)],
+                  "health": [db.heart_minutes(0), db.heart_minutes(1), db.heart_minutes(2), db.heart_minutes(3),
+                             db.heart_minutes(4), db.heart_minutes(5), db.heart_minutes(6)],
+                  "running": [db.running_time_ms(0), db.running_time_ms(1), db.running_time_ms(2),
+                              db.running_time_ms(3), db.running_time_ms(4), db.running_time_ms(5),
+                              db.running_time_ms(6)]}
     logging.info(str(stats))
     return formatted_string
+
 
 def handle_dialog(req, res):
     user_id = req['session']['user_id']
@@ -118,11 +127,7 @@ def handle_dialog(req, res):
         if int(req['request']['original_utterance'].lower()) in stats.keys():
             logging.info('INFO: Test Auth')
             sessionStorage[user_id]["key"] = int(req['request']['original_utterance'].lower())
-            # base[sessionStorage[user_id]["key"]] = {"steps": stats[res['response']['text']]["steps"],
-            #                                         "activity_minutes": stats[res['response']['text']]["activity_minutes"],
-            #                                         "heart": stats[res['response']['text']]["heart"],
-            #                                         "running": stats[res['response']['text']]["running"]}
-            res['response']['text'] = ("Авторизация успешна! Действуйте дальше!")
+            res['response']['text'] = "Авторизация успешна! Действуйте дальше!"
             sessionStorage[user_id]["suggests"] = ["Шаги", "Активность", "Сердце", "Бег", "Выход"]
             res['response']['buttons'] = create_suggs(user_id)
             sessionStorage[user_id]["auth"] = 1
@@ -169,33 +174,7 @@ def handle_dialog(req, res):
             res['response']['text'] = "Попробуйте снова!"
             res['response']['buttons'] = create_suggs(user_id)
             return
-    # Сюда дойдем только, если пользователь не новый,
-    # и разговор с Алисой уже был начат
-    # Обрабатываем ответ пользователя.
-    # В req['request']['original_utterance'] лежит весь текст,
-    # что нам прислал пользователь
-    # Если он написал 'ладно', 'куплю', 'покупаю', 'хорошо',
-    # то мы считаем, что пользователь согласился.
-    # Подумайте, всё ли в этом фрагменте написано "красиво"?
-    # if req[ 'request' ][ 'original_utterance' ].lower() in [
-    #    'ладно',
-    #    'куплю',
-    #    'покупаю',
-    #   'хорошо'
-    # ]:
-    #    # Пользователь согласился, прощаемся.
-    #    res[ 'response' ][ 'text' ] = 'Слона можно найти на Яндекс.Маркете!'
-    #    res[ 'response' ][ 'end_session' ] = True
-    #    return
 
-    # Если нет, то убеждаем его купить  слона!
-    # res[ 'response' ][ 'text' ] = 'Все говорят "%s", а ты купи слона!' % (
-    #    req[ 'request' ][ 'original_utterance' ]
-    # )
-    # res[ 'response' ][ 'buttons' ] = get_suggests(user_id)
-
-
-# Функция возвращает две подсказки для ответа.
 
 def create_suggs(user_id):
     global res
