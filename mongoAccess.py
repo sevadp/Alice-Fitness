@@ -145,13 +145,13 @@ class FitnessDatabase:  # объект для взаимодействия с mo
         self.oauth_session = oauth_session
         self.current_user = ""
 
-#  начало правок
 
     timeQueries = (  # время запросов в милисекундах
         6 * 60 * 60 * 1000,  # 6 часов
         12 * 60 * 60 * 1000,  # 12 часов
         24 * 60 * 60 * 1000,  # сутки
-        72 * 60 * 60 * 1000,  # два дня
+        2 * 24 * 60 * 60 * 1000,  # два дня
+        3 * 24 * 60 * 60 * 1000,  # три дня
         7 * 24 * 60 * 60 * 1000,  # неделя
         14 * 24 * 60 * 60 * 1000,  # две недели
     )
@@ -205,26 +205,30 @@ class FitnessDatabase:  # объект для взаимодействия с mo
                                           '=false&fields=session('
                                           'activeTimeMillis%2CactivityType%2CendTimeMillis%2CstartTimeMillis)')
         running_time_ms = 0
+        # todo: начало правок
         for session in response['session']:
             if session['activityType'] in runningActivities:
                 if 'endTimeMillis' and 'startTimeMillis' in session:
-                    if int(session['endTimeMillis']) <= end_time:
-                        running_time_ms += int(session['endTimeMillis']) - \
-                                           max(int(session['startTimeMillis']), start_time)
+                    session_end = int(session['endTimeMillis'])
+                    session_start = int(session['startTimeMillis'])
+                    if session_end >= start_time:
+                        timedelta = session_end - max(session_start, start_time)
+                        running_time_ms += timedelta
+
         record['running_time_ms'] = running_time_ms
         return record
 
     def steps(self, timespan=0):  # запросы к БД
-        return json.load(open('data/{}.json'.format(self.current_user)))[timespan]['steps']
+        return json.load(open('data/{}.json'.format(self.current_user)))['data'][timespan]['steps']
 
     def activity_minutes(self, timespan=0):
-        return json.load(open('data/{}.json'.format(self.current_user)))[timespan]['active_minutes']
+        return json.load(open('data/{}.json'.format(self.current_user)))['data'][timespan]['active_minutes']
 
     def heart_minutes(self, timespan=0):
-        return json.load(open('data/{}.json'.format(self.current_user)))[timespan]['heart_minutes']
+        return json.load(open('data/{}.json'.format(self.current_user)))['data'][timespan]['heart_minutes']
 
     def running_time_ms(self, timespan=0):
-        return json.load(open('data/{}.json'.format(self.current_user)))[timespan]['running_time_ms']
+        return json.load(open('data/{}.json'.format(self.current_user)))['data'][timespan]['running_time_ms']
 
 
-# конец правок
+#TODO: конец правок
