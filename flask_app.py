@@ -78,17 +78,36 @@ def auth_success():
     while key in stats.keys():
         key = random.randint(100000, 999999)
     formatted_string = "Укажи код верификации в приложении Алиса: " + str(key)
-    stats[key] = {"steps": [db.steps(0), db.steps(1), db.steps(2), db.steps(3), db.steps(4), db.steps(5), db.steps(6)],
+    stats[key] = {"steps": [db.steps(0), db.steps(1), db.steps(2), db.steps(3), db.steps(4), db.steps(5)],
                   "activity": [db.activity_minutes(0), db.activity_minutes(1),
                                db.activity_minutes(2), db.activity_minutes(3),
-                               db.activity_minutes(4), db.activity_minutes(5), db.activity_minutes(6)],
+                               db.activity_minutes(4), db.activity_minutes(5)],
                   "health": [db.heart_minutes(0), db.heart_minutes(1), db.heart_minutes(2), db.heart_minutes(3),
-                             db.heart_minutes(4), db.heart_minutes(5), db.heart_minutes(6)],
+                             db.heart_minutes(4), db.heart_minutes(5)],
                   "running": [db.running_time_ms(0), db.running_time_ms(1), db.running_time_ms(2),
-                              db.running_time_ms(3), db.running_time_ms(4), db.running_time_ms(5),
-                              db.running_time_ms(6)]}
+                              db.running_time_ms(3), db.running_time_ms(4), db.running_time_ms(5)]}
     logging.info(str(stats))
     return formatted_string
+
+
+def get_json():
+    global base
+    with open("data.json", "r") as fp:
+        base = json.load(fp)
+
+
+def save_json():
+    global base
+    with open("data.json", "r") as fp:
+        base = json.load(fp)
+
+
+def create_user(user_id):
+    new_key = random.randint(10000000, 99999999)
+    while new_key in base.keys():
+        new_key = random.randint(10000000, 99999999)
+    base[new_key] = {}
+    sessionStorage[user_id]["key"] = new_key
 
 
 def handle_dialog(req, res):
@@ -146,24 +165,21 @@ def handle_dialog(req, res):
         return
 
     if sessionStorage[user_id]["auth"] == 1:
+        st = stats[sessionStorage[user_id]["key"]]
         if req['request']['original_utterance'].lower() == "шаги":
-            res['response']['text'] = str(stats[sessionStorage[user_id]["key"]][0]) + str(" шагов вы совершили "
-                                                                                          "за последние две недели!")
+            res['response']['text'] = "Ваша статистика за 6, 12, 24, 48, 72 144 часа : " + str(st["steps"][0]) + ", " + str(st["steps"][1]) + ", " + str(st["steps"][2]) + ", " + str(st["steps"][3]) + ", " + str(st["steps"][4]) + ", " + str(st["steps"][5])
             res['response']['buttons'] = create_suggs(user_id)
             return
         elif req['request']['original_utterance'].lower() == "активность":
-            res['response']['text'] = str(stats[sessionStorage[user_id]["key"]][1]) + str(" минут активности "
-                                                                                          "за последние две недели!")
+            res['response']['text'] = "Ваша статистика за 6, 12, 24, 48, 72 144 часа : " + str(st["activity"][0]) + ", " + str(st["activity"][1]) + ", " + str(st["activity"][2]) + ", " + str(st["activity"][3]) + ", " + str(st["activity"][4]) + ", " + str(st["activity"][5])
             res['response']['buttons'] = create_suggs(user_id)
             return
         elif req['request']['original_utterance'].lower() == "сердце":
-            res['response']['text'] = str(stats[sessionStorage[user_id]["key"]][2]) + str(" баллов кардио вы получили "
-                                                                                          "за последние две недели!")
+            res['response']['text'] = "Ваша статистика за 6, 12, 24, 48, 72 144 часа : " + str(st["health"][0]) + ", " + str(st["health"][1]) + ", " + str(st["health"][2]) + ", " + str(st["health"][3]) + ", " + str(st["health"][4]) + ", " + str(st["health"][5])
             res['response']['buttons'] = create_suggs(user_id)
             return
         elif req['request']['original_utterance'].lower() == "бег":
-            res['response']['text'] = str(round(stats[sessionStorage[user_id]["key"]][3] / 1000 / 60, 2)) + str(
-                " минут бега за последние две недели!")
+            res['response']['text'] = "Ваша статистика за 6, 12, 24, 48, 72 144 часа : " + str(st["running"][0]) + ", " + str(st["running"][1]) + ", " + str(st["running"][2]) + ", " + str(st["running"][3]) + ", " + str(st["running"][4]) + ", " + str(st["running"][5])
             res['response']['buttons'] = create_suggs(user_id)
             return
         elif req['request']['original_utterance'].lower() == "выход":
