@@ -9,10 +9,10 @@ app = Flask(__name__)
 logging.basicConfig(level=logging.INFO)
 
 ssss = {"web": {
-    "client_id": "704405267037-7dplj60oku5bi24a1ul5tam0ggmms3uv.apps.googleusercontent.com",
+    "client_id": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
     "authorize_url": "https://accounts.google.com/o/oauth2/auth",
     "access_token_url": "https://oauth2.googleapis.com/token",
-    "client_secret": "acuoPUfbZwotI_CycNGAyyX0"
+    "client_secret": "XXXXXXXXXXXXXXX"
 },
     "unused": {
         "auth_uri": "https://accounts.google.com/o/oauth2/auth",
@@ -89,26 +89,6 @@ def auth_success():
                               db.running_time_ms(3), db.running_time_ms(4), db.running_time_ms(5)]}
     logging.info(str(stats))
     return formatted_string
-
-
-def get_json():
-    global base
-    with open("data.json", "r") as fp:
-        base = json.load(fp)
-
-
-def save_json():
-    global base
-    with open("data.json", "r") as fp:
-        base = json.load(fp)
-
-
-def create_user(user_id):
-    new_key = random.randint(10000000, 99999999)
-    while new_key in base.keys():
-        new_key = random.randint(10000000, 99999999)
-    base[new_key] = {}
-    sessionStorage[user_id]["key"] = new_key
 
 
 def handle_dialog(req, res):
@@ -188,20 +168,6 @@ def handle_dialog(req, res):
     except Exception:
         res['response']['text'] = "Попробуйте снова!"
         return
-
-
-def create_suggs(user_id):
-    session = sessionStorage[user_id]["suggests"]
-
-    suggs = []
-
-    for i in session:
-        suggs.append({"title": i, "hide": True})
-
-        if suggs[-1]["title"] == "Авторизовать":
-            suggs[-1]["url"] = "http://dpseva.pythonanywhere.com"
-
-    return suggs
 
 
 if __name__ == '__main__':
