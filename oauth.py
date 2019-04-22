@@ -12,11 +12,12 @@ class OAuthSession(object):
         self.service = OAuth2Service(
             **self.credentials
         )
-
+        self.session = None
 
     def callback(self):
         def decode_json(payload):
             return json.loads(payload.decode('utf-8'))
+
         self.session = self.service.get_auth_session(
             data={'code': request.args['code'],
                   'grant_type': 'authorization_code',
@@ -38,11 +39,10 @@ class OAuthSession(object):
             redirect_uri=OAuthSession.get_callback_url())
         )
 
-
-    def get(self,request):
+    def get(self, request):
         return self.session.get(request).json()
 
-    def post(self,request,data):
+    def post(self, request, data):
         return self.session.post(request, json=data).json()
 
     @staticmethod
