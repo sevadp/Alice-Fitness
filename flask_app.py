@@ -90,7 +90,6 @@ def auth_success():
     logging.info(str(stats))
     return formatted_string
 
-
 def handle_dialog(req, res):
     try:
         user_id = req['session']['user_id']
