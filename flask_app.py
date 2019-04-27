@@ -12,10 +12,10 @@ logging.basicConfig(level=logging.INFO)
 
 #######
 ssss = {"web": {
-    "client_id": "704405267037-7dplj60oku5bi24a1ul5tam0ggmms3uv.apps.googleusercontent.com",
+    "client_id": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
     "authorize_url": "https://accounts.google.com/o/oauth2/auth",
     "access_token_url": "https://oauth2.googleapis.com/token",
-    "client_secret": "acuoPUfbZwotI_CycNGAyyX0"
+    "client_secret": "XXXXXXXXXXXXXXXXXX"
 },
     "unused": {
         "auth_uri": "https://accounts.google.com/o/oauth2/auth",
