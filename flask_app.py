@@ -142,7 +142,7 @@ def handle_dialog(req, res):
             'key': 0,
         }
         res['response']['text'] = 'Пока!'
-        res['response']['end_session'] = True
+        res[ 'response' ]['end_session'] = True
         res['response']['buttons'] = get_suggests(user_id)
         return
 
@@ -239,9 +239,9 @@ def handle_dialog(req, res):
             return
         elif req['request']['original_utterance'].lower() == "минуты бега":
             res['response']['text'] = "Ваша статистика за 6, 12, 24, 48, 72 144, 288 часа : " + str(
-                timedelta(milliseconds=st["running"][0])) + ", " + str(timedelta(milliseconds=st["running"][1])) + \
+                timedelta(milliseconds=st["running"][0])) + ", " + str(timedelta(milliseconds=st["running"][1])) +\
                                       ", " + str(timedelta(milliseconds=st["running"][2])) + ", " + str(
-                timedelta(milliseconds=st["running"][3])) + ", " + str(timedelta(milliseconds=st["running"][4])) + \
+                timedelta(milliseconds=st["running"][3])) + ", " + str(timedelta(milliseconds=st["running"][4])) +\
                                       ", " + str(timedelta(milliseconds=st["running"][5])) + ", " + str(
                 timedelta(milliseconds=st["running"][6]))
             return
@@ -270,4 +270,6 @@ def get_suggests(user_id):
 
 if __name__ == '__main__':
     logging.info("Script Started")
+    app.run()
+
     app.run(debug=True)
