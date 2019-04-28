@@ -128,6 +128,7 @@ def handle_dialog(req, res):
             ],
             'auth': 0,
             'key': 0,
+            'point': 0,
         }
         res['response']['text'] = 'Привет! Введи "Авторизовать", чтобы продолжить.'
         res['response']['buttons'] = get_suggests(user_id)
@@ -140,9 +141,10 @@ def handle_dialog(req, res):
             ],
             'auth': 0,
             'key': 0,
+            'point': 0,
         }
         res['response']['text'] = 'Пока!'
-        res[ 'response' ]['end_session'] = True
+        res['response']['end_session'] = True
         res['response']['buttons'] = get_suggests(user_id)
         return
 
@@ -157,6 +159,7 @@ def handle_dialog(req, res):
             ],
             'auth': -1,
             'key': 0,
+            'point': 0,
         }
         res['response']['buttons'] = get_suggests(user_id)
         return
@@ -168,6 +171,7 @@ def handle_dialog(req, res):
             ],
             'auth': 0,
             'key': 0,
+            'point': 0,
         }
         res['response']['text'] = 'Попробуйте еще раз! Введи "Авторизовать", чтобы продолжить.'
         res['response']['buttons'] = get_suggests(user_id)
@@ -191,6 +195,7 @@ def handle_dialog(req, res):
                     ],
                     'auth': 1,
                     'key': init,
+                    'point': 0,
                 }
                 res['response']['buttons'] = get_suggests(user_id)
                 return
@@ -203,10 +208,172 @@ def handle_dialog(req, res):
                     ],
                     'auth': -1,
                     'key': 0,
+                    'point': 0,
                 }
                 res['response']['buttons'] = get_suggests(user_id)
                 return
-    if sessionStorage[user_id]['auth'] == 1:
+    if sessionStorage[user_id]['auth'] == 1 and sessionStorage[user_id]['point'] == 0:
+        # st = keys[sessionStorage[user_id]['key']]
+        if req['request']['original_utterance'].lower() == "шаги":
+            # res['response']['text'] = "Количество шагов за 6, 12, 24, 48, 72 144, 288 часа : " + str(
+            #     st["steps"][0]) + ", " + str(st["steps"][1]) + ", " + str(st["steps"][2]) + ", " + str(
+            #     st["steps"][3]) + ", " + str(st["steps"][4]) + ", " + str(st["steps"][5]) + ", " + str(st["steps"][6])
+            sessionStorage[user_id] = {
+                'suggests': [
+                    "6 часов",
+                    "12 часов",
+                    "24 часа",
+                    "48 часов",
+                    "3 дня",
+                    "7 дней",
+                    "14 дней",
+                    "Сброс",
+                    "Выход"
+                ],
+                'auth': 1,
+                'key': sessionStorage[user_id]['key'],
+                'point': 10,
+            }
+            res['response']['buttons'] = get_suggests(user_id)
+            res['response']['text'] = "Выберите промежуток времени: 6 часов, 12 часов, 24 часа, 48 часов, 3 дня, " \
+                                      "7 дней, 14 дней! Запишите его в ответ!"
+            return
+        elif req['request']['original_utterance'].lower() == "активность":
+            sessionStorage[user_id] = {
+                'suggests': [
+                    "6 часов",
+                    "12 часов",
+                    "24 часа",
+                    "48 часов",
+                    "3 дня",
+                    "7 дней",
+                    "14 дней",
+                    "Сброс",
+                    "Выход"
+                ],
+                'auth': 1,
+                'key': sessionStorage[user_id]['key'],
+                'point': 20,
+            }
+            res['response']['buttons'] = get_suggests(user_id)
+            res['response']['text'] = "Выберите промежуток времени: 6 часов, 12 часов, 24 часа, 48 часов, 3 дня, " \
+                                      "7 дней, 14 дней! Запишите его в ответ!"
+            return
+        elif req['request']['original_utterance'].lower() == "сердце":
+            sessionStorage[user_id] = {
+                'suggests': [
+                    "6 часов",
+                    "12 часов",
+                    "24 часа",
+                    "48 часов",
+                    "3 дня",
+                    "7 дней",
+                    "14 дней",
+                    "Сброс",
+                    "Выход"
+                ],
+                'auth': 1,
+                'key': sessionStorage[user_id]['key'],
+                'point': 30,
+            }
+            res['response']['buttons'] = get_suggests(user_id)
+            res['response']['text'] = "Выберите промежуток времени: 6 часов, 12 часов, 24 часа, 48 часов, 3 дня, " \
+                                      "7 дней, 14 дней! Запишите его в ответ!"
+            return
+        elif req['request']['original_utterance'].lower() == "минуты бега":
+            sessionStorage[user_id] = {
+                'suggests': [
+                    "6 часов",
+                    "12 часов",
+                    "24 часа",
+                    "48 часов",
+                    "3 дня",
+                    "7 дней",
+                    "14 дней",
+                    "Сброс",
+                    "Выход"
+                ],
+                'auth': 1,
+                'key': sessionStorage[user_id]['key'],
+                'point': 40,
+            }
+            res['response']['buttons'] = get_suggests(user_id)
+            res['response']['text'] = "Выберите промежуток времени: 6 часов, 12 часов, 24 часа, 48 часов, 3 дня, " \
+                                      "7 дней, 14 дней! Запишите его в ответ!"
+            return
+        else:
+            sessionStorage[user_id] = {
+                'suggests': [
+                    "6 часов",
+                    "12 часов",
+                    "24 часа",
+                    "48 часов",
+                    "3 дня",
+                    "7 дней",
+                    "14 дней",
+                    "Выход"
+                ],
+                'auth': 1,
+                'key': sessionStorage[user_id]['key'],
+                'point': 0,
+            }
+            res['response']['buttons'] = get_suggests(user_id)
+            res['response']['text'] = "Попробуйте снова!"
+            return
+    elif sessionStorage[user_id]['auth'] == 1 and sessionStorage[user_id]['point'] != 0:
+        ind = -1
+        if req['request']['original_utterance'].lower() == "6 часов":
+            ind = 0
+        elif req['request']['original_utterance'].lower() == "12 часов":
+            ind = 1
+        elif req['request']['original_utterance'].lower() == "24 часа":
+            ind = 2
+        elif req['request']['original_utterance'].lower() == "48 часов":
+            ind = 3
+        elif req['request']['original_utterance'].lower() == "3 дня":
+            ind = 4
+        elif req['request']['original_utterance'].lower() == "7 дней":
+            ind = 5
+        elif req['request']['original_utterance'].lower() == "14 дней":
+            ind = 6
+        elif req['request']['original_utterance'].lower() == "сброс":
+            sessionStorage[user_id] = {
+                'suggests': [
+                    "Шаги",
+                    "Активность",
+                    "Сердце",
+                    "Минуты бега",
+                    "Выход"
+                ],
+                'auth': 1,
+                'key': sessionStorage[user_id]['key'],
+                'point': 0,
+            }
+            res['response']['buttons'] = get_suggests(user_id)
+            res['response']['text'] = "Для получения статистики введите: Шаги, Активность, Сердце, Минуты бега!"
+            return
+        else:
+            sessionStorage[user_id] = {
+                'suggests': [
+                    "6 часов",
+                    "12 часов",
+                    "24 часа",
+                    "48 часов",
+                    "3 дня",
+                    "7 дней",
+                    "14 дней",
+                    "Сброс",
+                    "Выход"
+                ],
+                'auth': 1,
+                'key': sessionStorage[user_id]['key'],
+                'point': sessionStorage[user_id]['point'],
+            }
+            res['response']['buttons'] = get_suggests(user_id)
+            res['response']['text'] = "Выберите промежуток времени: 6 часов, 12 часов, 24 часа, 48 часов, 3 дня, " \
+                                      "7 дней, 14 дней! Запишите его в ответ!"
+            return
+
         sessionStorage[user_id] = {
             'suggests': [
                 "Шаги",
@@ -217,41 +384,21 @@ def handle_dialog(req, res):
             ],
             'auth': 1,
             'key': sessionStorage[user_id]['key'],
+            'point': 0,
         }
         res['response']['buttons'] = get_suggests(user_id)
         st = keys[sessionStorage[user_id]['key']]
-        if req['request']['original_utterance'].lower() == "шаги":
-            res['response']['text'] = "Ваша статистика за 6, 12, 24, 48, 72 144, 288 часа : " + str(
-                st["steps"][0]) + ", " + str(st["steps"][1]) + ", " + str(st["steps"][2]) + ", " + str(
-                st["steps"][3]) + ", " + str(st["steps"][4]) + ", " + str(st["steps"][5]) + ", " + str(st["steps"][6])
-            return
-        elif req['request']['original_utterance'].lower() == "активность":
-            res['response']['text'] = "Ваша статистика за 6, 12, 24, 48, 72 144, 288 часа : " + str(
-                st["activity"][0]) + ", " + str(st["activity"][1]) + ", " + str(st["activity"][2]) + ", " + str(
-                st["activity"][3]) + ", " + str(st["activity"][4]) + ", " + str(st["activity"][5]) + ", " + str(
-                st["activity"][6])
-            return
-        elif req['request']['original_utterance'].lower() == "сердце":
-            res['response']['text'] = "Ваша статистика за 6, 12, 24, 48, 72 144, 288 часа : " + str(
-                st["health"][0]) + ", " + str(st["health"][1]) + ", " + str(st["health"][2]) + ", " + str(
-                st["health"][3]) + ", " + str(st["health"][4]) + ", " + str(st["health"][5]) + ", " + str(
-                st["health"][6])
-            return
-        elif req['request']['original_utterance'].lower() == "минуты бега":
-            res['response']['text'] = "Ваша статистика за 6, 12, 24, 48, 72 144, 288 часа : " + str(
-                timedelta(milliseconds=st["running"][0])) + ", " + str(timedelta(milliseconds=st["running"][1])) +\
-                                      ", " + str(timedelta(milliseconds=st["running"][2])) + ", " + str(
-                timedelta(milliseconds=st["running"][3])) + ", " + str(timedelta(milliseconds=st["running"][4])) +\
-                                      ", " + str(timedelta(milliseconds=st["running"][5])) + ", " + str(
-                timedelta(milliseconds=st["running"][6]))
-            return
-        elif req['request']['original_utterance'].lower() == "выход":
-            res['response']['end_session'] = True
-            res['response']['text'] = "Пока!"
-            return
-        else:
-            res['response']['text'] = "Попробуйте снова!"
-            return
+
+        if sessionStorage[user_id]['point'] == 10:
+            res['response']['text'] = "Количество шагов за данный промежуток времени - " + str(st["steps"][ind]) + "!"
+        elif sessionStorage[user_id]['point'] == 20:
+            res['response']['text'] = "Количество шагов за данный промежуток времени - " + str(st["activity"][ind]) + "!"
+        elif sessionStorage[user_id]['point'] == 30:
+            res['response']['text'] = "Количество шагов за данный промежуток времени - " + str(st["health"][ind]) + "!"
+        elif sessionStorage[user_id]['point'] == 40:
+            res['response']['text'] = "Количество шагов за данный промежуток времени - " +\
+                                      str(timedelta(milliseconds=st["running"][ind])) + "!"
+        return
 
 
 def get_suggests(user_id):
@@ -270,6 +417,4 @@ def get_suggests(user_id):
 
 if __name__ == '__main__':
     logging.info("Script Started")
-    app.run()
-
     app.run(debug=True)
