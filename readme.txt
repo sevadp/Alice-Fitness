@@ -1,41 +1,43 @@
 Yandex Lyceum Project
 
-Навык "Мои показатели" для Яндекс Алисы.
+TRANSLATE XD
 
-Цель: 
-Разработка Навыка Алисы, с помощью которого можно будет получить быстро и легко данные из
-платформы Google FIT. В данный момент можно получить базовые данные: Шаги, Минуты активности, Баллы кардио.
-А так же специализированная активность - бег, улучшая данное направление можно уже будет
-спокойно получать время занятия теннисом или другими видами спорта. То есть база готова.
+Skill "My indicators" for Yandex Alice.
 
-Готовые модули: 
-1) Настроенное API приложение Google
-2) Авторизация Google OAuth
-3) Сохранение данных пользователя в базу данных.
-5) Поднятый WEB, обрабатывающий все запросы.
-6) Общение с Алисой со всеми ветками развития диалога и передачей полученных данных.
+Purpose:
+Developing Alice Skills, which can be used to quickly and easily retrieve data from
+Google Platform FIT. At the moment, you can get basic data: Steps, Minutes of activity, Cardio points.
+As well as specialized activity - running, improving this direction can already be
+quietly get your time playing tennis or other sports. That is, the base is ready.
 
-Суть общения с Алисой:
-1) Приветствие
-2) Запрос у пользователя верификационного кода, для связи ID YANDEX и Google.
-3) Данный запрос получается на нашем же сервере http://dpseva.pythonanywhere.com
-4) В случае успеха мы закрепляем за пользователем ключ, по которому будем давать результаты.
-5) Далее запрос на тип + время = ответ, доступен Выход.
+Ready modules:
+1) Customized API Google app
+2) Authorize Google OAuth
+3) Saving user data to the database.
+5) Raised WEB processing all requests.
+6) Communication with Alice with all branches of the development of the dialogue and the transfer of the data.
 
-База данных:
-1) mongoDB работает для Google, держит все в памяти, логирует в json. Легко смотреть на ошибки и тп, если возникнут.
-2) BASE JSON - Информация о пользователях лежит здесь. Необходима, т.к FLASK имеет много воркеров, у каждого своя память.
-3) Постоянно обновляется и сам json. Подгружается и выгружается. Требуется постоянный контакт с ней.
+The essence of communication with Alice:
+1) Greetings
+2) Request from the user verification code for communication ID YANDEX and Google.
+3) This request is obtained on our server http://dpseva.pythonanywhere.com
+4) In case of success, we assign a key to the user, according to which we will give results.
+5) Next, the request for the type time = response, the output is available.
 
-Выгрузка данных:
-1) В данный момент реализованна разовая выгрузка данных из Google.
-2) Время указывается самолично. 6 часов / 12 часов / сутки / 2 суток / 3 суток / 7 дн. / 14 дн. 
-3) Выгрузка возможна только при разрешении пользователя давать данные.
+Database:
+1) mongoDB works for Google, keeps everything in memory, logs in json. It is easy to look at errors and TP, if any.
+2) BASE JSON - User information is here. Necessary, because FLASK has many workers, each has its own memory.
+3) json itself is constantly updated. It is loaded and unloaded. Requires constant contact with her.
 
-Возможные улучшения:
-1) Хранить сессии юзеров, если возможно, чтобы не делать повторных авторизаций.
-2) Индивидуализировать пользователей, присвоив каждому свой secret-key. По которому можно будет
-ставить себе цели и т.п.
+Data upload:
+1) Currently implemented a one-time download of data from Google.
+2) The time is indicated personally. 6 hours / 12 hours / day / 2 days / 3 days / 7 days. / 14 days
+3) Uploading is possible only with user permission to give data.
+
+Possible improvements:
+1) Store user sessions, if possible, in order not to make repeated logins.
+2) Individualize users by assigning each their own secret-key. By which it will be possible
+set goals, etc.
 
 
 License Google
