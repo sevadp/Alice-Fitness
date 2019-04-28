@@ -77,7 +77,10 @@ def auth_success():
     while key in rd:
         key = random.randint(100000, 999999)
     formatted_string = "Укажи код верификации в приложении Алиса: " + str(key)
-    keys[key] = {"steps": [], "activity": [], "health": [], "running": []}
+    keys[key] = {"steps": [],
+                 "activity": [],
+                 "health": [],
+                 "running": []}
     print()
     logging.info("AUTH STARTED")
     logging.info(str(keys))
@@ -321,7 +324,6 @@ def handle_dialog(req, res):
             res['response']['text'] = "Попробуйте снова!"
             return
     elif sessionStorage[user_id]['auth'] == 1 and sessionStorage[user_id]['point'] != 0:
-        ind = -1
         if req['request']['original_utterance'].lower() == "6 часов":
             ind = 0
         elif req['request']['original_utterance'].lower() == "12 часов":
@@ -374,6 +376,18 @@ def handle_dialog(req, res):
                                       "7 дней, 14 дней! Запишите его в ответ!"
             return
 
+        st = keys[sessionStorage[user_id]['key']]
+
+        if sessionStorage[user_id]['point'] == 10:
+            res['response']['text'] = "Количество шагов за данный промежуток времени - " + str(st["steps"][ind]) + "!"
+        elif sessionStorage[user_id]['point'] == 20:
+            res['response']['text'] = "Количество шагов за данный промежуток времени - " +\
+                                      str(st["activity"][ind]) + "!"
+        elif sessionStorage[user_id]['point'] == 30:
+            res['response']['text'] = "Количество шагов за данный промежуток времени - " + str(st["health"][ind]) + "!"
+        elif sessionStorage[user_id]['point'] == 40:
+            res['response']['text'] = "Количество шагов за данный промежуток времени - " +\
+                                      str(timedelta(milliseconds=st["running"][ind])) + "!"
         sessionStorage[user_id] = {
             'suggests': [
                 "Шаги",
@@ -387,17 +401,6 @@ def handle_dialog(req, res):
             'point': 0,
         }
         res['response']['buttons'] = get_suggests(user_id)
-        st = keys[sessionStorage[user_id]['key']]
-
-        if sessionStorage[user_id]['point'] == 10:
-            res['response']['text'] = "Количество шагов за данный промежуток времени - " + str(st["steps"][ind]) + "!"
-        elif sessionStorage[user_id]['point'] == 20:
-            res['response']['text'] = "Количество шагов за данный промежуток времени - " + str(st["activity"][ind]) + "!"
-        elif sessionStorage[user_id]['point'] == 30:
-            res['response']['text'] = "Количество шагов за данный промежуток времени - " + str(st["health"][ind]) + "!"
-        elif sessionStorage[user_id]['point'] == 40:
-            res['response']['text'] = "Количество шагов за данный промежуток времени - " +\
-                                      str(timedelta(milliseconds=st["running"][ind])) + "!"
         return
 
 
