@@ -141,9 +141,10 @@ class FitnessDatabase:  # объект для взаимодействия с mo
         'steps': 'com.google.step_count.delta',
     }
 
-    def __init__(self, oauth_session):  # Метод взаимодействия с синглтоном
+    def __init__(self,oauth_session):  # Метод взаимодействия с синглтоном
         self.oauth_session = oauth_session
         self.current_user = ""
+
 
     timeQueries = (  # время запросов в милисекундах
         6 * 60 * 60 * 1000,  # 6 часов
@@ -156,8 +157,7 @@ class FitnessDatabase:  # объект для взаимодействия с mo
     )
 
     def update(self):
-        self.current_user = self.oauth_session.get(' https://www.googleapis.com/oauth'
-                                                   '2/v1/userinfo?alt=json&fields=id')['id']  # получение id пользовател
+        self.current_user = self.oauth_session.get(' https://www.googleapis.com/oauth2/v1/userinfo?alt=json&fields=id')['id']  # получение id пользователя
 
         record = {  # начало формирования записи
             '_id': self.current_user,
@@ -185,8 +185,7 @@ class FitnessDatabase:  # объект для взаимодействия с mo
         for metric, aggregator in FitnessDatabase.propertyNames.items():  # подсчёт сумм по каждому типу данных
             query['aggregateBy'][0]['dataTypeName'] = aggregator
             response = self.oauth_session.post(
-                'https://www.googleapis.com/fitness/v1/users/me/dataset:aggregate'
-                '?fields=bucket(dataset(point(value(fpVal%2CintVal))))',
+                'https://www.googleapis.com/fitness/v1/users/me/dataset:aggregate?fields=bucket(dataset(point(value(fpVal%2CintVal))))',
                 query)  # запрос нужных данных
             counter = 0
             try:
@@ -230,3 +229,6 @@ class FitnessDatabase:  # объект для взаимодействия с mo
 
     def running_time_ms(self, timespan=0):
         return json.load(open('data/{}.json'.format(self.current_user)))['data'][timespan]['running_time_ms']
+
+
+#TODO: конец правок

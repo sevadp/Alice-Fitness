@@ -12,10 +12,10 @@ logging.basicConfig(level=logging.INFO)
 
 #######
 ssss = {"web": {
-    "client_id": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX",
+    "client_id": "704405267037-7dplj60oku5bi24a1ul5tam0ggmms3uv.apps.googleusercontent.com",
     "authorize_url": "https://accounts.google.com/o/oauth2/auth",
     "access_token_url": "https://oauth2.googleapis.com/token",
-    "client_secret": "XXXXXXXXXXXXXXXXXX"
+    "client_secret": "acuoPUfbZwotI_CycNGAyyX0"
 },
     "unused": {
         "auth_uri": "https://accounts.google.com/o/oauth2/auth",
@@ -77,10 +77,7 @@ def auth_success():
     while key in rd:
         key = random.randint(100000, 999999)
     formatted_string = "Укажи код верификации в приложении Алиса: " + str(key)
-    keys[key] = {"steps": [],
-                 "activity": [],
-                 "health": [],
-                 "running": []}
+    keys[key] = {"steps": [], "activity": [], "health": [], "running": []}
     print()
     logging.info("AUTH STARTED")
     logging.info(str(keys))
@@ -148,6 +145,14 @@ def handle_dialog(req, res):
         }
         res['response']['text'] = 'Пока!'
         res['response']['end_session'] = True
+        res['response']['buttons'] = get_suggests(user_id)
+        return
+
+    if req['request']['original_utterance'].lower() == "помощь" or \
+            req['request']['original_utterance'].lower() == "что ты умеешь":
+        res['response']['text'] = 'Я навык, с помощью которого ты сможешь получать важные для' \
+                                  ' спортсмена данные быстро и удобно! Нужен лишь аккаунт GOOGLE FIT, ' \
+                                  'а дальше тебя наставят на путь истинный!)'
         res['response']['buttons'] = get_suggests(user_id)
         return
 
@@ -381,12 +386,13 @@ def handle_dialog(req, res):
         if sessionStorage[user_id]['point'] == 10:
             res['response']['text'] = "Количество шагов за данный промежуток времени - " + str(st["steps"][ind]) + "!"
         elif sessionStorage[user_id]['point'] == 20:
-            res['response']['text'] = "Количество шагов за данный промежуток времени - " +\
+            res['response']['text'] = "Количество минут активности за данный промежуток времени - " +\
                                       str(st["activity"][ind]) + "!"
         elif sessionStorage[user_id]['point'] == 30:
-            res['response']['text'] = "Количество шагов за данный промежуток времени - " + str(st["health"][ind]) + "!"
+            res['response']['text'] = "Количество баллов кардио за данный промежуток времени - " +\
+                                      str(st["health"][ind]) + "!"
         elif sessionStorage[user_id]['point'] == 40:
-            res['response']['text'] = "Количество шагов за данный промежуток времени - " +\
+            res['response']['text'] = "Количество минут бега за данный промежуток времени - " +\
                                       str(timedelta(milliseconds=st["running"][ind])) + "!"
         sessionStorage[user_id] = {
             'suggests': [
@@ -420,4 +426,4 @@ def get_suggests(user_id):
 
 if __name__ == '__main__':
     logging.info("Script Started")
-    app.run(debug=True)
+    app.run()

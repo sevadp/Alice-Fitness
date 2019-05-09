@@ -1,5 +1,5 @@
 import json
-import logging
+from uuid import uuid4
 from rauth import OAuth2Service
 from flask import current_app, url_for, request, redirect, session
 
@@ -11,6 +11,7 @@ class OAuthSession(object):
         self.service = OAuth2Service(
             **self.credentials
         )
+
 
     def callback(self):
         def decode_json(payload):
@@ -36,16 +37,17 @@ class OAuthSession(object):
             redirect_uri=OAuthSession.get_callback_url())
         )
 
-    def get(self, request):
+
+    def get(self,request):
         return self.session.get(request).json()
 
-    def post(self, request, data):
+    def post(self,request,data):
         return self.session.post(request, json=data).json()
 
     @staticmethod
     def get_callback_url():
         # return url_for('auth_success',
         #                _external=True)
-        logging.info('Request: 111')
-        return url_for('auth_success',
-                       _external=True)
+        return "http://lvh.me:5000/auth_success"
+
+
